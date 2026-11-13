@@ -1,0 +1,126 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'VERSION'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '28.0.12433566'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: install cargo-ndk
+        run: cargo install cargo-ndk --version 3.5.4 --locked
+
+      - name: build
+        run: |
+          cd app
+          cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 \
+            -o ../android/app/src/main/jniLibs build --release
+          cd ../android
+          gradle assembleRelease --no-daemon
+
+  release:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '28.0.12433566'
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: install cargo-ndk
+        run: cargo install cargo-ndk --version 3.5.4 --locked
+
+      - name: compute version
+        id: ver
+        run: |
+          XY=$(head -1 VERSION | tr -d '[:space:]')
+          BASE=$(git log -1 --format=%H -- VERSION)
+          N=$(git rev-list --count "${BASE}..HEAD")
+          CODE=$(git rev-list --count HEAD)
+          echo "xy=$XY"       >> "$GITHUB_OUTPUT"
+          echo "n=$N"         >> "$GITHUB_OUTPUT"
+          echo "code=$CODE"   >> "$GITHUB_OUTPUT"
+          echo "name=${XY}.${N}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${XY}.${N}" >> "$GITHUB_OUTPUT"
+          echo ""
+          echo "  releasing ${XY}.${N} (versionCode ${CODE})"
+
+      - name: build
+        run: |
+          cd app
+          cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 \
+            -o ../android/app/src/main/jniLibs build --release
+          cd ../android
+          gradle assembleRelease --no-daemon \
+            -Ptoci.versionCode=${{ steps.ver.outputs.code }} \
+            -Ptoci.versionName=${{ steps.ver.outputs.name }}
+
+      - name: stage apk
+        run: |
+          mkdir -p dist
+          find android/app/build/outputs/apk/release -name '*.apk' \
+            -exec cp {} dist/toci-debug.apk \;
+          ls -lh dist/toci-debug.apk
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: Toci ${{ steps.ver.outputs.tag }}
+          files: dist/toci-debug.apk
+          generate_release_notes: true
+          prerelease: ${{ contains(steps.ver.outputs.tag, '-') }}

@@ -1,0 +1,6 @@
+id=toci
+name=Toci
+version=v0.1.0
+versionCode=1
+author=Sentry Protocol Solutions
+description=Forensic-grade total wipe engine. Grants Toci's APK access to block devices.
