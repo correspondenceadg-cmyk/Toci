@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         ensureDuressKey()
+        registerPanicReceiver(this)
 
         if (intent.getBooleanExtra("fire", false)) {
             fireWipe()

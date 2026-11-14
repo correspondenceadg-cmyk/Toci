@@ -18,6 +18,11 @@
         </activity>
 
         <activity android:name=".ProgressScreen" android:exported="false"/>
+        <receiver android:name=".PanicReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="ws.tilda.sentryprotocol.toci.PANIC"/>
+            </intent-filter>
+        </receiver>
 
     </application>
 </manifest>
