@@ -10,7 +10,15 @@ import android.content.IntentFilter
 class PanicReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == "ws.tilda.sentryprotocol.toci.PANIC") {
-            val i = Intent(context, ProgressScreen::class.java).apply {
+            val isDestruction = intent.getBooleanExtra("destruction", false)
+            val targetClass = if (isDestruction) {
+                /* four-factor sequence must be verified here */
+                ProgressScreen::class.java
+            } else {
+                ProgressScreen::class.java
+            }
+
+            val i = Intent(context, targetClass).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 putStringArrayListExtra("parts", ArrayList(listOf(
                     "/dev/block/by-name/userdata",

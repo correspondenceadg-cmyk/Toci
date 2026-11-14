@@ -36,6 +36,16 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        if (intent.getBooleanExtra("ceremony", false)) {
+            val view = ComposeView(this).apply {
+                setContent {
+                    CeremonyFlow { /* Handle armed state persistence here */ }
+                }
+            }
+            setContentView(view)
+            return
+        }
+
         val prefs = getEncryptedPrefs()
         if (prefs.contains("duress_hash")) {
             // Already onboarded, skip to trigger for testing
