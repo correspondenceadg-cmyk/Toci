@@ -11,7 +11,7 @@ jni = "0.21"
 libc = { version = "0.2", optional = true }
 zeroize = { version = "1.8", features = ["derive"], optional = true }
 log = "0.4"
-android_logger = "0.14"
+android_logger = "0.15"
 
 [build-dependencies]
 cc = "1"
