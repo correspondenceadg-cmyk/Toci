@@ -24,7 +24,23 @@ import kotlin.concurrent.thread
 
 // State
 
-enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial }
+enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial, Disguised }
+
+@Composable
+fun SystemUpdateScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("System Update", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(24.dp))
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = Color(0xFF22AA66))
+        Spacer(Modifier.height(24.dp))
+        Text("Optimizing app 1 of 42...", style = MaterialTheme.typography.bodyMedium)
+        Text("Do not turn off your device.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+    }
+}
 
 @Composable
 fun GlitchCanvas(modifier: Modifier = Modifier) {
@@ -94,6 +110,7 @@ class ProgressScreen : ComponentActivity() {
                             Spacer(Modifier.height(32.dp))
                             LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = Color(0xFFFF3355))
                         }
+                        WipeStatus.Disguised -> SystemUpdateScreen()
                         WipeStatus.Degrading -> {
                             Box(modifier = Modifier.fillMaxSize()) {
                                 GlitchCanvas(modifier = Modifier.fillMaxSize())

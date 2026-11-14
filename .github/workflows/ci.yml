@@ -47,6 +47,11 @@ jobs:
       - name: install cargo-ndk
         run: cargo install cargo-ndk --version 3.5.4 --locked
 
+      - name: test
+        run: |
+          cd app
+          cargo test --release
+
       - name: build
         run: |
           cd app
@@ -105,6 +110,11 @@ jobs:
           echo "tag=v${XY}.${N}" >> "$GITHUB_OUTPUT"
           echo ""
           echo "  releasing ${XY}.${N} (versionCode ${CODE})"
+
+      - name: test
+        run: |
+          cd app
+          cargo test --release
 
       - name: build
         run: |

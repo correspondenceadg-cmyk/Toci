@@ -7,6 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
+import kotlinx.coroutines.delay
 
 // State
 
@@ -19,6 +24,25 @@ fun CeremonyFlow(onArmed: () -> Unit) {
     var step by remember { mutableStateOf(CeremonyStep.Warning) }
     var passphrase by remember { mutableStateOf("") }
     var hoursRemaining by remember { mutableStateOf(24) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var backgroundTime by remember { mutableStateOf(0L) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                backgroundTime = System.currentTimeMillis()
+            } else if (event == Lifecycle.Event.ON_START) {
+                if (backgroundTime > 0 && System.currentTimeMillis() - backgroundTime > 30000) {
+                    step = CeremonyStep.Warning
+                    passphrase = ""
+                    hoursRemaining = 24
+                }
+                backgroundTime = 0
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     TociTheme {
         Column(

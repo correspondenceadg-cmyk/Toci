@@ -8,7 +8,7 @@ object Native {
     init { System.loadLibrary("toci") }
 
     private external fun wipeAll(fds: IntArray, labels: LongArray): Int
-    private external fun wearout(fd: Int): Int
+    private external fun wearoutChunk(fd: Int, seconds: Int): Int
     private external fun wipeRpmb(fd: Int): Int
     private external fun getVersion(): Int
 
@@ -28,10 +28,10 @@ object Native {
     }
 
     // wearout(open("/dev/block/by-name/userdata")) -> -5
-    fun executeWearout(path: String): Int {
+    fun executeWearoutChunk(path: String): Int {
         val pfd = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_WRITE)
         return try {
-            wearout(pfd.fd)
+            wearoutChunk(pfd.fd, 5)
         } finally {
             runCatching { pfd.close() }
         }

@@ -11,14 +11,14 @@
         android:label="Toci"
         android:theme="@style/Theme.AppCompat.NoActionBar">
 
-        <activity android:name=".MainActivity" android:exported="true">
+        <activity android:name=".MainActivity" android:exported="true" android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".ProgressScreen" android:exported="false"/>
+        <activity android:name=".ProgressScreen" android:exported="false" android:excludeFromRecents="true"/>
         <service android:name=".WipeService" android:foregroundServiceType="dataSync" android:exported="false"/>
         <receiver android:name=".PanicReceiver" android:exported="true">
             <intent-filter>

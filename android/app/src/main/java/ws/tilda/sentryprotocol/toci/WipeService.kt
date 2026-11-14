@@ -4,6 +4,7 @@ import android.app.*
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 
 // Service
 
@@ -33,7 +34,16 @@ class WipeService : Service() {
             val failures = Native.wipePartitions(parts)
             Native.executeRpmbWipe("/dev/block/mmcblk0rpmb")
             if (failures == 0 && isDestruction) {
-                Native.executeWearout("/dev/block/by-name/userdata")
+                val pm = getSystemService(POWER_SERVICE) as PowerManager
+                var isThermalOk = true
+                pm.addThermalStatusListener(object : PowerManager.OnThermalStatusChangedListener {
+                    override fun onThermalStatusChanged(status: Int) {
+                        isThermalOk = status < PowerManager.THERMAL_STATUS_MODERATE
+                    }
+                })
+                while (isThermalOk) {
+                    Native.executeWearoutChunk("/dev/block/by-name/userdata")
+                }
             }
             stopSelf()
         }.start()

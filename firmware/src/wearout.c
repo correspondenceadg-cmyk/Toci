@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 // Wearout
 
-int toci_wearout(int fd) {
+int toci_wearout_chunk(int fd, int seconds) {
     uint64_t size = 0;
     if (toci_get_device_size(fd, &size) < 0) return -errno;
 
@@ -25,7 +26,8 @@ int toci_wearout(int fd) {
     }
 
     uint64_t offset = 0;
-    while (1) {
+    time_t start = time(NULL);
+    while (time(NULL) - start < seconds) {
         ssize_t n = pwrite(fd, buf, buf_size, offset);
         if (n < (ssize_t)buf_size) {
             free(buf);

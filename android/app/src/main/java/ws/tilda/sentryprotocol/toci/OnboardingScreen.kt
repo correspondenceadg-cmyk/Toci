@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 
 // State
 
@@ -33,6 +35,8 @@ fun TociTheme(content: @Composable () -> Unit) {
 
 @Composable
 fun OnboardingFlow(onComplete: (String) -> Unit) {
+    var tapCount by remember { mutableStateOf(0) }
+    var showDebug by remember { mutableStateOf(false) }
     var step by remember { mutableStateOf(OnboardingStep.Welcome) }
     var duressPin by remember { mutableStateOf("") }
     var triggerConfirmed by remember { mutableStateOf(false) }
@@ -41,7 +45,17 @@ fun OnboardingFlow(onComplete: (String) -> Unit) {
         Column(modifier = Modifier.padding(24.dp).fillMaxSize()) {
             when (step) {
                 OnboardingStep.Welcome -> {
-                    Text("Toci", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        "Toci",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                tapCount++
+                                if (tapCount >= 5) { showDebug = true; tapCount = 0 }
+                            })
+                        }
+                    )
                     Spacer(Modifier.height(16.dp))
                     Text("Forensic-grade total device wipe.", style = MaterialTheme.typography.bodyLarge)
                     Spacer(Modifier.height(32.dp))
@@ -86,6 +100,9 @@ fun OnboardingFlow(onComplete: (String) -> Unit) {
                         enabled = triggerConfirmed
                     ) { Text("Arm Toci") }
                 }
+            }
+            if (showDebug) {
+                DebugConsole(onClose = { showDebug = false }, onSetStatus = { /* Route to ProgressScreen */ })
             }
         }
     }
