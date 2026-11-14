@@ -4,7 +4,7 @@ use jni::JNIEnv;
 
 mod orchestrator;
 mod verification;
-mod log;
+mod logger;
 
 pub mod ffi {
     #[repr(C)]
