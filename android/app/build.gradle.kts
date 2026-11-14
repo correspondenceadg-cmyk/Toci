@@ -1,15 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-}
-
-// Signing
-
-val tociDebug by signingConfigs.creating {
-    storeFile = file("toci-debug.keystore")
-    storePassword = "android"
-    keyAlias = "androiddebugkey"
-    keyPassword = "android"
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -25,13 +17,24 @@ android {
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
     }
 
+    // Signing
+
+    signingConfigs {
+        create("tociDebug") {
+            storeFile = file("toci-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = tociDebug
+            signingConfig = signingConfigs.getByName("tociDebug")
         }
         debug {
-            signingConfig = tociDebug
+            signingConfig = signingConfigs.getByName("tociDebug")
         }
     }
 
@@ -42,6 +45,10 @@ android {
 
     kotlinOptions { jvmTarget = "17" }
 
+    buildFeatures {
+        compose = true
+    }
+
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
@@ -50,6 +57,12 @@ android {
 }
 
 dependencies {
+    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
 }
