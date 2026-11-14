@@ -27,9 +27,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - uses: nttld/setup-ndk@v1
         with:
-          ndk-version: '28.0.12433566'
+          ndk-version: r28c
+          link-to-sdk: true
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -40,6 +41,8 @@ jobs:
           workspaces: app
 
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
 
       - name: install cargo-ndk
         run: cargo install cargo-ndk --version 3.5.4 --locked
@@ -68,9 +71,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - uses: nttld/setup-ndk@v1
         with:
-          ndk-version: '28.0.12433566'
+          ndk-version: r28c
+          link-to-sdk: true
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -81,6 +85,8 @@ jobs:
           workspaces: app
 
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
 
       - name: install cargo-ndk
         run: cargo install cargo-ndk --version 3.5.4 --locked
