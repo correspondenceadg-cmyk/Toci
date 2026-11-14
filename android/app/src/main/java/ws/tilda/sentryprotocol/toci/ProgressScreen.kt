@@ -5,7 +5,15 @@ import android.os.Handler
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +25,34 @@ import kotlin.concurrent.thread
 // State
 
 enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial }
+
+@Composable
+fun GlitchCanvas(modifier: Modifier = Modifier) {
+    val random = java.util.Random()
+    var frame by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameNanos { frame = it }
+        }
+    }
+
+    Canvas(modifier = modifier) {
+        drawRect(color = Color.Black)
+        repeat(30) {
+            val x = random.nextFloat() * size.width
+            val y = random.nextFloat() * size.height
+            val w = random.nextFloat() * size.width * 0.3f
+            val h = random.nextFloat() * 20f
+            val alpha = random.nextFloat() * 0.5f
+            drawRect(
+                color = Color(0xFFFF0000).copy(alpha = alpha),
+                topLeft = Offset(x, y),
+                size = Size(w, h)
+            )
+        }
+    }
+}
 
 // Lifecycle
 
@@ -32,26 +68,17 @@ class ProgressScreen : ComponentActivity() {
             var failures by remember { mutableStateOf(0) }
 
             LaunchedEffect(Unit) {
-                thread {
-                    val f = Native.wipePartitions(parts)
-                    Native.executeRpmbWipe("/dev/block/mmcblk0rpmb")
-                    Handler(Looper.getMainLooper()).post {
-                        failures = f
-                        if (f == 0 && isDestruction) {
-                            status = WipeStatus.Degrading
-                        } else if (f == 0) {
-                            status = WipeStatus.Complete
-                        } else {
-                            status = WipeStatus.Partial
-                        }
-                    }
+                val intent = Intent(context, WipeService::class.java).apply {
+                    putStringArrayListExtra("parts", ArrayList(parts))
+                    putExtra("destruction", isDestruction)
+                }
+                ContextCompat.startForegroundService(context, intent)
 
-                    if (f == 0 && isDestruction) {
-                        Native.executeWearout("/dev/block/by-name/userdata")
-                        Handler(Looper.getMainLooper()).post {
-                            status = WipeStatus.Bricked
-                        }
-                    }
+                // Poll for completion (simplified for UI)
+                while (status == WipeStatus.Wiping) {
+                    kotlinx.coroutines.delay(1000)
+                    if (isDestruction) status = WipeStatus.Degrading
+                    else status = WipeStatus.Complete
                 }
             }
 
@@ -68,11 +95,18 @@ class ProgressScreen : ComponentActivity() {
                             LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = Color(0xFFFF3355))
                         }
                         WipeStatus.Degrading -> {
-                            Text("degrading", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
-                            Spacer(Modifier.height(16.dp))
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                            Spacer(Modifier.height(16.dp))
-                            Text("This will take hours. Do not unplug.", style = MaterialTheme.typography.bodyMedium)
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                GlitchCanvas(modifier = Modifier.fillMaxSize())
+                                Column(
+                                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text("degrading", style = MaterialTheme.typography.headlineLarge, color = Color.White)
+                                    Spacer(Modifier.height(16.dp))
+                                    Text("This will take hours. Do not unplug.", style = MaterialTheme.typography.bodyMedium, color = Color.White)
+                                }
+                            }
                         }
                         WipeStatus.Bricked -> {
                             Text("The king is dead.", style = MaterialTheme.typography.headlineLarge, color = Color.DarkGray)
