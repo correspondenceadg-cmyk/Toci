@@ -7,6 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.background
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -15,24 +17,42 @@ import kotlinx.coroutines.delay
 
 // State
 
-enum class CeremonyStep { Warning, Passphrase, Waiting, Armed }
+enum class CeremonyStep { Warning, Passphrase, Waiting, Armed, Skeleton }
 
 // Ceremony
 
 @Composable
 fun CeremonyFlow(onArmed: () -> Unit) {
-    var step by remember { mutableStateOf(CeremonyStep.Warning) }
+    val context = LocalContext.current
+    var step by remember { mutableStateOf(CeremonyStep.Skeleton) }
     var passphrase by remember { mutableStateOf("") }
     var hoursRemaining by remember { mutableStateOf(24) }
     val lifecycleOwner = LocalLifecycleOwner.current
     var backgroundTime by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1000)
+        if (CeremonyPrefs.isArmed(context)) {
+            step = CeremonyStep.Armed
+        } else {
+            val startTime = CeremonyPrefs.getStartTime(context)
+            if (startTime > 0) {
+                val elapsedHours = ((System.currentTimeMillis() - startTime) / 3600000).toInt()
+                hoursRemaining = (24 - elapsedHours).coerceAtLeast(0)
+                step = CeremonyStep.Waiting
+            } else {
+                step = CeremonyStep.Warning
+            }
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
                 backgroundTime = System.currentTimeMillis()
             } else if (event == Lifecycle.Event.ON_START) {
-                if (backgroundTime > 0 && System.currentTimeMillis() - backgroundTime > 30000) {
+                if (step != CeremonyStep.Armed && step != CeremonyStep.Skeleton && backgroundTime > 0 && System.currentTimeMillis() - backgroundTime > 30000) {
+                    CeremonyPrefs.reset(context)
                     step = CeremonyStep.Warning
                     passphrase = ""
                     hoursRemaining = 24
@@ -51,12 +71,18 @@ fun CeremonyFlow(onArmed: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (step) {
+                CeremonyStep.Skeleton -> {
+                    Text("loading...", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                }
                 CeremonyStep.Warning -> {
                     Text("DESTRUCTION MODE", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(16.dp))
                     Text("This will permanently degrade the device hardware and brick the bootloader. It cannot be undone.", style = MaterialTheme.typography.bodyLarge)
                     Spacer(Modifier.height(32.dp))
-                    Button(onClick = { step = CeremonyStep.Passphrase }) { Text("I Understand") }
+                    Button(onClick = { 
+                        CeremonyPrefs.setStartTime(context, System.currentTimeMillis())
+                        step = CeremonyStep.Passphrase 
+                    }) { Text("I Understand") }
                 }
                 CeremonyStep.Passphrase -> {
                     Text("Set Destruction Passphrase", style = MaterialTheme.typography.headlineMedium)
@@ -84,6 +110,7 @@ fun CeremonyFlow(onArmed: () -> Unit) {
                     }
                     Button(
                         onClick = {
+                            CeremonyPrefs.arm(context)
                             onArmed()
                             step = CeremonyStep.Armed
                         },

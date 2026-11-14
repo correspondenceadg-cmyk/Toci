@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (intent.getBooleanExtra("ceremony", false)) {
+        if (intent.getBooleanExtra("ceremony", false) || (intent.getBooleanExtra("destruction", false) && !CeremonyPrefs.isArmed(this))) {
             val view = ComposeView(this).apply {
                 setContent {
                     CeremonyFlow { /* Handle armed state persistence here */ }
