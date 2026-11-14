@@ -1,5 +1,6 @@
 package ws.tilda.sentryprotocol.toci
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -7,11 +8,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.detectTapGestures
 
 // State
 
@@ -35,11 +35,11 @@ fun TociTheme(content: @Composable () -> Unit) {
 
 @Composable
 fun OnboardingFlow(onComplete: (String) -> Unit) {
-    var tapCount by remember { mutableStateOf(0) }
-    var showDebug by remember { mutableStateOf(false) }
     var step by remember { mutableStateOf(OnboardingStep.Welcome) }
     var duressPin by remember { mutableStateOf("") }
     var triggerConfirmed by remember { mutableStateOf(false) }
+    var tapCount by remember { mutableStateOf(0) }
+    var showDebug by remember { mutableStateOf(false) }
 
     Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(24.dp).fillMaxSize()) {

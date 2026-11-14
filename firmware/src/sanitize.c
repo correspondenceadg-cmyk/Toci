@@ -2,6 +2,8 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 #include <errno.h>
+#include <stddef.h>
+#include <sys/types.h>
 
 // Device info
 
