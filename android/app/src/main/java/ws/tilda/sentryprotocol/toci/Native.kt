@@ -9,10 +9,23 @@ object Native {
 
     private external fun wipeAll(fds: IntArray, labels: LongArray): Int
     private external fun wearout(fd: Int): Int
+    private external fun wipeRpmb(fd: Int): Int
     private external fun getVersion(): Int
 
     // version() -> 1
     fun version(): Int = getVersion()
+
+    // executeRpmbWipe("/dev/block/mmcblk0rpmb") -> 0
+    fun executeRpmbWipe(path: String): Int {
+        return try {
+            val pfd = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_WRITE)
+            val ret = wipeRpmb(pfd.fd)
+            pfd.close()
+            ret
+        } catch (e: Exception) {
+            -1
+        }
+    }
 
     // wearout(open("/dev/block/by-name/userdata")) -> -5
     fun executeWearout(path: String): Int {

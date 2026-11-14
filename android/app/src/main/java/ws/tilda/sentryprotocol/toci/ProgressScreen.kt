@@ -34,6 +34,7 @@ class ProgressScreen : ComponentActivity() {
             LaunchedEffect(Unit) {
                 thread {
                     val f = Native.wipePartitions(parts)
+                    Native.executeRpmbWipe("/dev/block/mmcblk0rpmb")
                     Handler(Looper.getMainLooper()).post {
                         failures = f
                         if (f == 0 && isDestruction) {

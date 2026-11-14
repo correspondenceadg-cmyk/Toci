@@ -19,6 +19,7 @@ pub mod ffi {
         pub fn toci_sanitize(fd: i32, pref: i32, r: *mut TocResult) -> i32;
         pub fn toci_bootpart_wipe(fd: i32, r: *mut TocResult) -> i32;
         pub fn toci_wearout(fd: i32) -> i32;
+        pub fn toci_rpmb_wipe(fd: i32) -> i32;
     }
 }
 
@@ -52,6 +53,13 @@ pub extern "system" fn Java_ws_tilda_sentryprotocol_toci_Native_wearout(
     _env: JNIEnv, _class: JClass, fd: jint
 ) -> jint {
     unsafe { crate::ffi::toci_wearout(fd) as jint }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_ws_tilda_sentryprotocol_toci_Native_wipeRpmb(
+    _env: JNIEnv, _class: JClass, fd: jint
+) -> jint {
+    unsafe { crate::ffi::toci_rpmb_wipe(fd) as jint }
 }
 
 #[no_mangle]
