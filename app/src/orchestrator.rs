@@ -14,6 +14,8 @@ pub struct PartResult {
     pub bytes: u64,
 }
 
+use crate::verification::sample_size;
+
 pub struct Report {
     pub results: Vec<PartResult>,
 }
@@ -32,6 +34,24 @@ pub fn run_wipe(targets: &[Target]) -> Report {
         let rc = unsafe { toci_sanitize(t.fd, 0, &mut r) };
         if rc < 0 {
             log::warn!("sanitize failed for {}: errno {}", t.name, r.err);
+        }
+        if r.err == 0 && r.method_used != 0 {
+            let count = sample_size(0.99, 0.01);
+            let mut lbas = vec![0u64; count as usize];
+            for i in 0..count {
+                lbas[i as usize] = i as u64;
+            }
+            let expected = vec![std::ptr::null::<u8>(); count as usize];
+            let mut pass = 0;
+            let mut fail = 0;
+            unsafe {
+                crate::ffi::toci_verify_readback(
+                    t.fd, lbas.as_ptr(), count, expected.as_ptr(), &mut pass, &mut fail
+                );
+            }
+            if fail > 0 {
+                log::warn!("verification failed on {}: {} blocks not zeroed", t.name, fail);
+            }
         }
         results.push(PartResult {
             name: t.name.clone(),

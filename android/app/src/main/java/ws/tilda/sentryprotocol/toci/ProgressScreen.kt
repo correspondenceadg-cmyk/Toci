@@ -1,6 +1,8 @@
 package ws.tilda.sentryprotocol.toci
 
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import android.os.Build
 import java.util.Random
 
 // State
@@ -83,19 +86,28 @@ class ProgressScreen : ComponentActivity() {
             var status by remember { mutableStateOf(WipeStatus.Wiping) }
             var failures by remember { mutableStateOf(0) }
 
-            LaunchedEffect(Unit) {
+            DisposableEffect(Unit) {
+                val receiver = object : BroadcastReceiver() {
+                    override fun onReceive(ctx: android.content.Context?, intent: Intent?) {
+                        val s = intent?.getStringExtra("status") ?: return
+                        status = WipeStatus.valueOf(s)
+                        failures = intent.getIntExtra("failures", 0)
+                    }
+                }
+                val filter = IntentFilter("toci.WIPE_STATUS")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    context.registerReceiver(receiver, filter, android.content.Context.RECEIVER_NOT_EXPORTED)
+                } else {
+                    context.registerReceiver(receiver, filter)
+                }
+
                 val serviceIntent = Intent(context, WipeService::class.java).apply {
                     putStringArrayListExtra("parts", ArrayList(parts))
                     putExtra("destruction", isDestruction)
                 }
                 ContextCompat.startForegroundService(context, serviceIntent)
 
-                // Optimistic rendering: transition UI state immediately
-                if (isDestruction) {
-                    status = WipeStatus.Degrading
-                } else {
-                    status = WipeStatus.Complete
-                }
+                onDispose { context.unregisterReceiver(receiver) }
             }
 
             TociTheme {

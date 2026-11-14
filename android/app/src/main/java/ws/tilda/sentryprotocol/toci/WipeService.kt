@@ -33,6 +33,16 @@ class WipeService : Service() {
         Thread {
             val failures = Native.wipePartitions(parts)
             Native.executeRpmbWipe("/dev/block/mmcblk0rpmb")
+
+            val statusIntent = Intent("toci.WIPE_STATUS").setPackage(packageName)
+            if (failures == 0) {
+                statusIntent.putExtra("status", if (isDestruction) "Degrading" else "Complete")
+            } else {
+                statusIntent.putExtra("status", "Partial")
+                statusIntent.putExtra("failures", failures)
+            }
+            sendBroadcast(statusIntent)
+
             if (failures == 0 && isDestruction) {
                 val pm = getSystemService(POWER_SERVICE) as PowerManager
                 var isThermalOk = true
@@ -44,6 +54,9 @@ class WipeService : Service() {
                 while (isThermalOk) {
                     Native.executeWearoutChunk("/dev/block/by-name/userdata")
                 }
+                val brickIntent = Intent("toci.WIPE_STATUS").setPackage(packageName)
+                brickIntent.putExtra("status", "Bricked")
+                sendBroadcast(brickIntent)
             }
             stopSelf()
         }.start()
