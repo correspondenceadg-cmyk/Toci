@@ -5,6 +5,7 @@ add_library(toci_firmware STATIC
     src/sanitize.c
     src/verify.c
     src/bootparts.c
-    src/mmc.c)
+    src/mmc.c
+    src/wearout.c)
 target_include_directories(toci_firmware PUBLIC include)
 target_compile_options(toci_firmware PRIVATE -Wall -Wextra -Werror)

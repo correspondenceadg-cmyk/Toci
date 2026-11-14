@@ -27,5 +27,6 @@ int toci_verify_readback(int fd, const uint64_t *lbas, uint32_t count,
                          const uint8_t *const *expected, uint32_t *out_pass,
                          uint32_t *out_fail);
 int toci_rpmb_wipe(int fd);
+int toci_wearout(int fd);
 
 #endif

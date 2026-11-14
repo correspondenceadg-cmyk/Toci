@@ -20,6 +20,7 @@ class PanicReceiver : BroadcastReceiver() {
 
             val i = Intent(context, targetClass).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra("destruction", isDestruction)
                 putStringArrayListExtra("parts", ArrayList(listOf(
                     "/dev/block/by-name/userdata",
                     "/dev/block/by-name/metadata",

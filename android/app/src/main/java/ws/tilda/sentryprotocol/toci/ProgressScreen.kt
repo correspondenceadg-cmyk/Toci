@@ -16,7 +16,7 @@ import kotlin.concurrent.thread
 
 // State
 
-enum class WipeStatus { Wiping, Complete, Partial }
+enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial }
 
 // Lifecycle
 
@@ -25,6 +25,7 @@ class ProgressScreen : ComponentActivity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         val parts = intent.getStringArrayListExtra("parts") ?: emptyList()
+        val isDestruction = intent.getBooleanExtra("destruction", false)
 
         setContent {
             var status by remember { mutableStateOf(WipeStatus.Wiping) }
@@ -35,7 +36,20 @@ class ProgressScreen : ComponentActivity() {
                     val f = Native.wipePartitions(parts)
                     Handler(Looper.getMainLooper()).post {
                         failures = f
-                        status = if (f == 0) WipeStatus.Complete else WipeStatus.Partial
+                        if (f == 0 && isDestruction) {
+                            status = WipeStatus.Degrading
+                        } else if (f == 0) {
+                            status = WipeStatus.Complete
+                        } else {
+                            status = WipeStatus.Partial
+                        }
+                    }
+
+                    if (f == 0 && isDestruction) {
+                        Native.executeWearout("/dev/block/by-name/userdata")
+                        Handler(Looper.getMainLooper()).post {
+                            status = WipeStatus.Bricked
+                        }
                     }
                 }
             }
@@ -51,6 +65,18 @@ class ProgressScreen : ComponentActivity() {
                             Text("cleaning", style = MaterialTheme.typography.headlineLarge, color = Color(0xFFFF3355))
                             Spacer(Modifier.height(32.dp))
                             LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = Color(0xFFFF3355))
+                        }
+                        WipeStatus.Degrading -> {
+                            Text("degrading", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.height(16.dp))
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.height(16.dp))
+                            Text("This will take hours. Do not unplug.", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        WipeStatus.Bricked -> {
+                            Text("The king is dead.", style = MaterialTheme.typography.headlineLarge, color = Color.DarkGray)
+                            Spacer(Modifier.height(16.dp))
+                            Text("Long live the king.", style = MaterialTheme.typography.bodyLarge, color = Color.DarkGray)
                         }
                         WipeStatus.Complete -> {
                             Text("cleaning complete", style = MaterialTheme.typography.headlineLarge, color = Color(0xFF22AA66))
