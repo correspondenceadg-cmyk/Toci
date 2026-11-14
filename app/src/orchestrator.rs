@@ -7,6 +7,7 @@ pub struct Target {
     pub name: String,
 }
 
+#[allow(dead_code)]
 pub struct PartResult {
     pub name: String,
     pub method: u32,

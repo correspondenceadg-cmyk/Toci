@@ -33,6 +33,7 @@ pub extern "system" fn Java_ws_tilda_sentryprotocol_toci_Native_wipeAll(
     fds: JIntArray,
     _labels: JLongArray,
 ) -> jint {
+    crate::logger::init();
     let n = match env.get_array_length(&fds) { Ok(x) => x as usize, Err(_) => return -1 };
     let mut buf = vec![0i32; n];
     if env.get_int_array_region(&fds, 0, &mut buf).is_err() { return -1; }

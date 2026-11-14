@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 // Menu
 
 @Composable
-@Composable
 fun EmulatorTicker(onClose: () -> Unit) {
     val logs = remember { mutableStateListOf<String>() }
     val scrollState = rememberScrollState()
