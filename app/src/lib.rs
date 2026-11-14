@@ -25,7 +25,7 @@ pub mod ffi {
 
 #[no_mangle]
 pub extern "system" fn Java_ws_tilda_sentryprotocol_toci_Native_wipeAll(
-    mut env: JNIEnv,
+    env: JNIEnv,
     _class: JClass,
     fds: JIntArray,
     _labels: JLongArray,

@@ -42,7 +42,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.9'
 
       - name: install cargo-ndk
         run: cargo install cargo-ndk --version 3.5.4 --locked
@@ -86,7 +86,7 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.9'
 
       - name: install cargo-ndk
         run: cargo install cargo-ndk --version 3.5.4 --locked
