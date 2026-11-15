@@ -30,9 +30,31 @@ class GhostActivity : ComponentActivity() {
             } else {
                 if (panicFallback) {
                     TociTheme {
-                        Column(modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(24.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
-                            androidx.compose.material3.Text("Error", color = androidx.compose.ui.graphics.Color.Red, style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
-                            androidx.compose.material3.Text("The real layer has been locked or cleared. Please use the clean layer.", color = androidx.compose.ui.graphics.Color.White)
+                        Column(
+                            modifier = androidx.compose.ui.Modifier.fillMaxSize().padding(24.dp),
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                        ) {
+                            androidx.compose.material3.Text(
+                                "Password Expired", 
+                                color = androidx.compose.ui.graphics.Color.Red, 
+                                style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+                            )
+                            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+                            androidx.compose.material3.Text(
+                                "Your session has expired or the password was changed. Please unlock using your current PIN.", 
+                                color = androidx.compose.ui.graphics.Color.Gray,
+                                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+                            )
+                            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(32.dp))
+                            androidx.compose.material3.Button(
+                                onClick = { 
+                                    unlocked = false 
+                                    panicFallback = false 
+                                }
+                            ) {
+                                androidx.compose.material3.Text("Try Again", fontFamily = coralinesCat)
+                            }
                         }
                     }
                 } else {
