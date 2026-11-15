@@ -29,6 +29,16 @@ fun DebugConsole(onClose: () -> Unit, onSetStatus: (WipeStatus) -> Unit) {
                 Button(
                     onClick = { 
                         val context = androidx.compose.ui.platform.LocalContext.current
+                        context.startActivity(android.content.Intent(context, GhostActivity::class.java))
+                        onClose()
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+                ) { Text("Launch The Ghost") }
+
+                Button(
+                    onClick = { 
+                        val context = androidx.compose.ui.platform.LocalContext.current
                         context.startActivity(android.content.Intent(context, EmulatorActivity::class.java))
                         onClose()
                     },
