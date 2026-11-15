@@ -9,7 +9,16 @@ import android.content.IntentFilter
 
 class PanicReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == "ws.tilda.sentryprotocol.toci.PANIC") {
+        if (intent.action == "ws.tilda.sentryprotocol.toci.GHOST") {
+            val i = Intent(context, GhostActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra("trigger_panic", true)
+            }
+            context.startActivity(i)
+            return
+        }
+
+        if (intent.action == "ws.tilda.sentryprotocol.toci.WIPE") {
             val isDestruction = intent.getBooleanExtra("destruction", false)
             val targetClass = if (isDestruction) {
                 /* four-factor sequence must be verified here */

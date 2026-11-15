@@ -20,12 +20,22 @@ class GhostActivity : ComponentActivity() {
             var layer by remember { mutableStateOf(GhostLayer.Clean) }
             var panicFallback by remember { mutableStateOf(false) }
 
+            LaunchedEffect(Unit) {
+                if (intent.getBooleanExtra("trigger_panic", false)) {
+                    GhostPrefs.wipeRealLayer(this@GhostActivity)
+                    panicFallback = true
+                    unlocked = true
+                }
+            }
+
             if (!configured) {
                 GhostSetup { configured = true }
             } else if (!unlocked) {
                 GhostUnlock { 
                     layer = it
                     unlocked = true 
+                    // If clean layer, hide Toci. If real layer, show Toci.
+                    GhostManager.toggleTociIcon(this, it == GhostLayer.Real)
                 }
             } else {
                 if (panicFallback) {
