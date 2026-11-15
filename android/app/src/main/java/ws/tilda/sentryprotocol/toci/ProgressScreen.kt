@@ -80,6 +80,8 @@ class ProgressScreen : ComponentActivity() {
         super.onCreate(s)
         val parts = intent.getStringArrayListExtra("parts") ?: emptyList()
         val isDestruction = intent.getBooleanExtra("destruction", false)
+        val isDebugPreview = intent.getBooleanExtra("debug_preview", false)
+        val debugStatusStr = intent.getStringExtra("debug_status")
 
         setContent {
             val context = LocalContext.current
@@ -87,6 +89,11 @@ class ProgressScreen : ComponentActivity() {
             var failures by remember { mutableStateOf(0) }
 
             DisposableEffect(Unit) {
+                if (isDebugPreview) {
+                    status = WipeStatus.valueOf(debugStatusStr ?: "Wiping")
+                    return@DisposableEffect onDispose { }
+                }
+
                 val receiver = object : BroadcastReceiver() {
                     override fun onReceive(ctx: android.content.Context?, intent: Intent?) {
                         val s = intent?.getStringExtra("status") ?: return

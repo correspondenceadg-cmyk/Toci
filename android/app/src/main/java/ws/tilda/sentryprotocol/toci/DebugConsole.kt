@@ -35,38 +35,20 @@ fun DebugConsole(onClose: () -> Unit, onSetStatus: (WipeStatus) -> Unit) {
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 ) { Text("Launch Companion Emulator") }
                 Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = { 
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        context.sendBroadcast(android.content.Intent("ws.tilda.sentryprotocol.toci.PANIC").setPackage(context.packageName))
-                        onClose()
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
-                ) { Text("Fire Panic Broadcast") }
-
-                Button(
-                    onClick = { 
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        val intent = android.content.Intent(context, ProgressScreen::class.java).apply {
-                            putStringArrayListExtra("parts", ArrayList(listOf(
-                                "/dev/block/by-name/userdata",
-                                "/dev/block/by-name/cache"
-                            )))
-                        }
-                        context.startActivity(intent)
-                        onClose()
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF22AA66))
-                ) { Text("Start Real Wipe (Engine)") }
-
                 Spacer(Modifier.height(8.dp))
-                Text("UI States", style = MaterialTheme.typography.titleMedium)
+                Text("Safe UI Previews", style = MaterialTheme.typography.titleMedium)
 
                 WipeStatus.values().forEach { status ->
                     Button(
-                        onClick = { onSetStatus(status); onClose() },
+                        onClick = { 
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            val intent = android.content.Intent(context, ProgressScreen::class.java).apply {
+                                putExtra("debug_preview", true)
+                                putExtra("debug_status", status.name)
+                            }
+                            context.startActivity(intent)
+                            onClose()
+                        },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ) { Text(status.name) }
                 }
