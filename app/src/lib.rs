@@ -19,6 +19,7 @@ pub mod ffi {
         pub fn toci_sanitize(fd: i32, pref: i32, r: *mut TocResult) -> i32;
         pub fn toci_bootpart_wipe(fd: i32, r: *mut TocResult) -> i32;
         pub fn toci_wearout_chunk(fd: i32, seconds: i32) -> i32;
+        pub fn toci_brick_bootloader(fd: i32) -> i32;
         pub fn toci_rpmb_wipe(fd: i32) -> i32;
         pub fn toci_verify_readback(fd: i32, lbas: *const u64, count: u32, expected: *const *const u8, out_pass: *mut u32, out_fail: *mut u32) -> i32;
     }
@@ -62,6 +63,13 @@ pub extern "system" fn Java_ws_tilda_sentryprotocol_toci_Native_wipeRpmb(
     _env: JNIEnv, _class: JClass, fd: jint
 ) -> jint {
     unsafe { crate::ffi::toci_rpmb_wipe(fd) as jint }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_ws_tilda_sentryprotocol_toci_Native_brickBootloader(
+    _env: JNIEnv, _class: JClass, fd: jint
+) -> jint {
+    unsafe { crate::ffi::toci_brick_bootloader(fd) as jint }
 }
 
 #[no_mangle]

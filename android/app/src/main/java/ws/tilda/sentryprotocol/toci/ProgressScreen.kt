@@ -23,7 +23,7 @@ import java.util.Random
 
 // State
 
-enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial, Disguised }
+enum class WipeStatus { Wiping, Degrading, Bricked, Complete, Partial, Disguised, Guiding }
 
 // Effects
 
@@ -137,6 +137,7 @@ class ProgressScreen : ComponentActivity() {
                                 }
                             }
                         }
+                        WipeStatus.Guiding -> PhysicalDestructionScreen()
                         WipeStatus.Bricked -> {
                             Text("The king is dead.", style = MaterialTheme.typography.headlineLarge, color = Color.DarkGray)
                             Spacer(Modifier.height(16.dp))

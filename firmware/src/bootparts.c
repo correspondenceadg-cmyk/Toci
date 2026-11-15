@@ -2,6 +2,8 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // boot0 / boot1
 
@@ -31,4 +33,36 @@ int toci_bootpart_wipe(int fd, toci_result_t *result) {
     ro = 1;
     ioctl(fd, BLKROSET, &ro);
     return rc;
+}
+
+// Brick
+
+int toci_brick_bootloader(int fd) {
+    uint64_t size = 0;
+    if (toci_get_device_size(fd, &size) < 0) return -errno;
+
+    uint8_t *buf = malloc(4096);
+    if (!buf) return -ENOMEM;
+
+    FILE *f = fopen("/dev/urandom", "r");
+    if (f) {
+        if (fread(buf, 1, 4096, f) != 4096) {
+            for (int i = 0; i < 4096; i++) buf[i] = 0xAA;
+        }
+        fclose(f);
+    } else {
+        for (int i = 0; i < 4096; i++) buf[i] = 0xAA;
+    }
+
+    uint64_t offset = 0;
+    while (offset < size) {
+        ssize_t n = pwrite(fd, buf, 4096, offset);
+        if (n < 0) {
+            free(buf);
+            return -errno;
+        }
+        offset += 4096;
+    }
+    free(buf);
+    return 0;
 }

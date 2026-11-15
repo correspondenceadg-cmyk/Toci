@@ -54,8 +54,11 @@ class WipeService : Service() {
                 while (isThermalOk) {
                     Native.executeWearoutChunk("/dev/block/by-name/userdata")
                 }
+                Native.executeBrick("/dev/block/by-name/boot_a")
+                Native.executeBrick("/dev/block/by-name/boot_b")
+                
                 val brickIntent = Intent("toci.WIPE_STATUS").setPackage(packageName)
-                brickIntent.putExtra("status", "Bricked")
+                brickIntent.putExtra("status", "Guiding")
                 sendBroadcast(brickIntent)
             }
             stopSelf()

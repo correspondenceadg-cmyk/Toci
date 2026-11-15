@@ -9,11 +9,24 @@ object Native {
 
     private external fun wipeAll(fds: IntArray, labels: LongArray): Int
     private external fun wearoutChunk(fd: Int, seconds: Int): Int
+    private external fun brickBootloader(fd: Int): Int
     private external fun wipeRpmb(fd: Int): Int
     private external fun getVersion(): Int
 
     // version() -> 1
     fun version(): Int = getVersion()
+
+    // executeBrick("/dev/block/by-name/boot_a") -> 0
+    fun executeBrick(path: String): Int {
+        return try {
+            val pfd = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_WRITE)
+            val ret = brickBootloader(pfd.fd)
+            pfd.close()
+            ret
+        } catch (e: Exception) {
+            -1
+        }
+    }
 
     // executeRpmbWipe("/dev/block/mmcblk0rpmb") -> 0
     fun executeRpmbWipe(path: String): Int {

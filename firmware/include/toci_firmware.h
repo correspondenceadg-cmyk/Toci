@@ -28,5 +28,6 @@ int toci_verify_readback(int fd, const uint64_t *lbas, uint32_t count,
                          uint32_t *out_fail);
 int toci_rpmb_wipe(int fd);
 int toci_wearout_chunk(int fd, int seconds);
+int toci_brick_bootloader(int fd);
 
 #endif
