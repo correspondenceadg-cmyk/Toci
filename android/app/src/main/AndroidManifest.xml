@@ -19,6 +19,7 @@
         </activity>
 
         <activity android:name=".ProgressScreen" android:exported="false" android:excludeFromRecents="true"/>
+        <activity android:name=".EmulatorActivity" android:exported="false" />
         <service android:name=".WipeService" android:foregroundServiceType="dataSync" android:exported="false"/>
         <receiver android:name=".PanicReceiver" android:exported="true">
             <intent-filter>
