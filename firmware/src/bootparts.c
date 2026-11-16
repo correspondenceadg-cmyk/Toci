@@ -2,6 +2,7 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 #include <errno.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 
