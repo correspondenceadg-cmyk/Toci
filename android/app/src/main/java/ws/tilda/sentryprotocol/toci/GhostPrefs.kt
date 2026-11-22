@@ -54,6 +54,15 @@ object GhostPrefs {
         getPrefs(context).edit().remove("real_hash").apply()
     }
 
+    fun getInstalledApps(context: Context): List<String> {
+        val json = getPrefs(context).getString("installed_apps", null) ?: return emptyList()
+        return json.split(",").filter { it.isNotEmpty() }
+    }
+
+    fun setInstalledApps(context: Context, apps: List<String>) {
+        getPrefs(context).edit().putString("installed_apps", apps.joinToString(",")).apply()
+    }
+
     fun seedPlausibleHistory(context: Context) {
         getPrefs(context).edit()
             .putString("clean_note_1", "Buy milk, eggs, and bread.")
